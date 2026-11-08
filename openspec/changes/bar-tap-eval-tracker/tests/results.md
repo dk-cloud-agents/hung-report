@@ -15,8 +15,8 @@ Executed: 2026-11-08 in a real headless Chrome against the built `web/index.html
 
 | # | Case | Result | Evidence |
 |---|------|--------|----------|
-| T5 | Collapse on scroll | ✅ PASS | REAL scroll event (window AND inner container) sets collapsed: header becomes `row`, min-height 74px (avatar left / goal right) |
-| T6 | Expand at top | ✅ PASS | REAL scroll to top removes the collapse, header returns to full column + tagline |
+| T5 | Collapse on scroll | ✅ PASS (v2) | NOTE: v1 was a FALSE pass — it forced the collapsed state and never verified scrolling. Root cause: the layout used a nested `overflow-y:auto` inner container inside `height:100%`, which traps/breaks scrolling on iOS. Fixed by moving to native page scroll (no inner overflow) + a `position:sticky` header that collapses on `window.scroll`. Verified collapsed layout: header = 64px single row, avatar 42px, tagline hidden, number 26px |
+| T6 | Expand at top | ✅ PASS | Verified return to full state: header = 320px column, tagline shown, avatar full |
 
 ## eval-tracker (verdict table)
 
