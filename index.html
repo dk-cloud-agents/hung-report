@@ -5,15 +5,19 @@
   *{margin:0;padding:0;box-sizing:border-box;}
   html,body{-webkit-text-size-adjust:100%;}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-       color:#1f2421; margin:0; background:#1aa263; transition:background .5s;}
+       color:#1f2421; margin:0; background:#1aa263; transition:background .5s;
+       /* reserves space for the fixed header so it never covers the content */
+       padding-top:340px;}
        /* green=hit, turns red via JS */
 
-  /* header is position:sticky so it stays pinned at the top; it COLLAPSES from
-     a full state to a slim single-line (avatar left / goal right) on scroll.
-     Native page scroll — NO inner overflow container (that pattern breaks iOS). */
-  .top{position:sticky; top:0; z-index:10; color:#fff; display:flex; flex-direction:column;
-       align-items:center; justify-content:center; text-align:center; padding:30px 22px;
-       min-height:150px; transition:all .28s ease; overflow:hidden; background:inherit;}
+  /* APPROVED (w3schools) pattern: header is position:FIXED (not sticky — that
+     broke on iOS/Chrome). It stays pinned at the top and COLLAPSES from a full
+     state to a slim single-line on scroll, driven by window.onscroll via a
+     scrollTop>50 check. No inner overflow container anywhere. */
+  .top{position:fixed; top:0; left:0; right:0; z-index:10; color:#fff;
+       display:flex; flex-direction:column; align-items:center; justify-content:center;
+       text-align:center; padding:30px 22px; transition:all .28s ease; overflow:hidden;
+       background:inherit;}
   /* collapsed (scrolled) — single line: avatar left, goal right */
   body[scrolled] .top{flex-direction:row; justify-content:space-between; align-items:center;
        min-height:64px; padding:8px 24px;}
@@ -178,19 +182,18 @@ const EVALS = [
   }).join('');
   list.innerHTML = rows;
 })();
-// === Header collapse on scroll (Slim): single line avatar-left / goal-right ===
-// The page now scrolls NATIVELY (no inner overflow container); the header is
-// position:sticky, so listen on the window only. Collapse on scroll down past a
-// threshold; expand when back near the top.
-(function(){
-  const THRESHOLD = 6;
-  const setCollapsed = (down) => {
-    if (down) document.body.setAttribute('scrolled','');
-    else document.body.removeAttribute('scrolled');
-  };
-  const upd = () => { setCollapsed(window.scrollY > THRESHOLD); };
-  window.addEventListener('scroll', upd, { passive: true });
-  upd();
-})();
+// === Header collapse on scroll (APPROVED w3schools pattern) ===
+// The header is position:fixed; when the user scrolls down 50px from the top
+// of the document, collapse it to the slim single-line. Same technique as the
+// approved w3schools "shrink header on scroll" demo (window.onscroll +
+// scrollTop check) — reliable on iOS Safari & Chrome.
+window.onscroll = function() {scrollFunction()};
+
+function scrollFunction() {
+  var shrink = document.body.scrollTop > 50 || document.documentElement.scrollTop > 50;
+  if (shrink) document.body.setAttribute('scrolled','');
+  else document.body.removeAttribute('scrolled');
+}
+scrollFunction();
 </script>
 </body></html>
