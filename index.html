@@ -28,6 +28,19 @@
   .xlabels span{flex:1; text-align:center; font-size:8.5px; color:#a5aba5;}
   .charttitle{margin-top:10px; font-size:10px; letter-spacing:1.3px; text-transform:uppercase;
         color:#8a8f8a; font-weight:800; text-align:center;}
+  .readout{min-height:24px; margin:8px 0 0; font-size:14px; font-weight:700; color:#222;
+        text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .evals{margin-top:16px; border-top:1px solid #e6e8e6; padding-top:12px;}
+  .evals-title{font-size:10px; letter-spacing:1.3px; text-transform:uppercase;
+        color:#8a8f8a; font-weight:800; margin-bottom:8px; text-align:center;}
+  .eval-list{display:flex; flex-direction:column; gap:6px;}
+  .eval-row{display:flex; align-items:center; justify-content:space-between;
+        font-size:12px; color:#333; background:#f4f6f4; border-radius:8px; padding:7px 10px;}
+  .eval-date{font-weight:700; color:#111;}
+  .eval-metrics{display:flex; gap:12px; align-items:center;}
+  .eval-tag{font-size:12px; font-weight:700; width:26px; text-align:center;}
+  .eval-tag.up{color:#16a34a;} .eval-tag.down{color:#e0553f;} .eval-tag.flat{color:#a5aba5;}
+  .eval-empty{font-size:12px; color:#a5aba5; text-align:center; padding:6px 0;}
 </style></head>
 <body>
   <div class="top">
@@ -37,8 +50,13 @@
   </div>
   <div class="bottom">
     <div class="bars" id="bars"></div>
+    <div class="readout" id="readout"></div>
     <div class="xlabels" id="labels"></div>
     <div class="charttitle">Rolling 7-day total</div>
+    <div class="evals">
+      <div class="evals-title">Treadmill evals · 15% / 30 min</div>
+      <div class="eval-list" id="evallist"></div>
+    </div>
   </div>
 
 <script>
@@ -62,12 +80,67 @@ bars.innerHTML = rolling.map(v => {
   return `<div class="bar ${v>=GOAL?'ok':'no'}" style="height:${h}%"></div>`;
 }).join('');
 const gl = document.createElement('div'); gl.className = 'goal-line';
-const barH    = bars.clientHeight;
+// Position the goal line where a bar of height == GOAL would reach. Bars are
+// bottom-aligned with height = % of the CONTENT box; an absolutely positioned
+// element's % is relative to the PADDING box, so a naive `top: %` lands ~padding
+// too high. Measure the real boxes and convert to px to keep them aligned.
+const barH    = bars.clientHeight;                        // padding box height
 const padTop  = parseFloat(getComputedStyle(bars).paddingTop) || 0;
-const contentH = barH - padTop;
+const contentH = barH - padTop;                           // content box height
 const goalTopPx = padTop + (1 - GOAL/maxRoll) * contentH;
 gl.style.top = goalTopPx + 'px';
 bars.appendChild(gl);
 document.getElementById('labels').innerHTML = dates.map(d => `<span>${d}</span>`).join('');
+
+// === Feature 1: bar tap → reveal that date's trailing-7-day total ===
+const readout = document.getElementById('readout');
+const barEls = Array.from(bars.children).filter(el => el.classList.contains('bar'));
+barEls.forEach((el, i) => {
+  el.style.cursor = 'pointer';
+  el.addEventListener('click', e => {
+    e.stopPropagation();
+    const d = dates[i], v = rolling[i];
+    readout.textContent = `${d}: ${v} min in the last 7 days`;
+  });
+});
+// tap outside a bar → clear the readout
+document.addEventListener('click', e => {
+  if (!e.target.classList || !e.target.classList.contains('bar')) readout.textContent = '';
+});
+
+// === Feature 2: eval tracker (15% / 30 min treadmill evals) ===
+// date | avg HR (bpm) | speed (km/h) — newest first. Log the 30-min-window avg
+// HR when a session was longer than 30 min; longer sessions without a valid
+// 30-min-window HR are excluded (eligibility rule).
+const EVALS = [
+  { d: "30.10", hr: 138, kmh: 3.3 },
+  { d: "29.10", hr: 136, kmh: 3.3 },
+  { d: "18.08", hr: 112, kmh: 3.0 },
+  { d: "10.08", hr: 106, kmh: 2.5 },
+  { d: "05.08", hr: 113, kmh: 2.4 },
+];
+(function renderEvals(){
+  const list = document.getElementById('evallist');
+  if (!EVALS.length) { list.innerHTML = '<div class="eval-empty">No evals yet</div>'; return; }
+  const tag = (cur, prev) => {
+    if (cur === null || prev === null) return '<span class="eval-tag flat">—</span>';
+    const up = cur > prev, dn = cur < prev, f = !up && !dn;
+    if (up) return '<span class="eval-tag up">↑</span>';
+    if (dn) return '<span class="eval-tag down">↓</span>';
+    return '<span class="eval-tag flat">→</span>';
+  };
+  list.innerHTML = EVALS.map((e, i) => {
+    const prev = EVALS[i+1];
+    const hrTag = i < EVALS.length-1 ? tag(e.hr, prev.hr) : '<span class="eval-tag flat">—</span>';
+    const spTag = i < EVALS.length-1 ? tag(e.kmh, prev.kmh) : '<span class="eval-tag flat">—</span>';
+    return `<div class="eval-row">
+      <span class="eval-date">${e.d}</span>
+      <span class="eval-metrics">
+        <span>${e.hr} bpm</span> ${hrTag}
+        <span>${e.kmh} km/h</span> ${spTag}
+      </span>
+    </div>`;
+  }).join('');
+})();
 </script>
 </body></html>
