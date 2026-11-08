@@ -144,14 +144,7 @@ document.addEventListener('click', e => {
 // date | avg HR (bpm) | speed (km/h) — newest first. Log the 30-min-window avg
 // HR when a session was longer than 30 min; longer sessions without a valid
 // 30-min-window HR are excluded (eligibility rule).
-const EVALS = [
-  { d: "08.11", hr: 127, kmh: 3.3 },
-  { d: "30.10", hr: 138, kmh: 3.3 },
-  { d: "29.10", hr: 136, kmh: 3.3 },
-  { d: "18.08", hr: 112, kmh: 3.0 },
-  { d: "10.08", hr: 106, kmh: 2.5 },
-  { d: "05.08", hr: 113, kmh: 2.4 },
-];
+const EVALS = [{ d: "08.11", hr: 127, kmh: 3.3 }, { d: "30.10", hr: 138, kmh: 3.3 }, { d: "29.10", hr: 136, kmh: 3.3 }, { d: "18.08", hr: 112, kmh: 3.0 }, { d: "10.08", hr: 106, kmh: 2.5 }, { d: "05.08", hr: 113, kmh: 2.4 }];
 (function renderEvals(){
   const list = document.getElementById('evallist');
   if (!EVALS.length) { list.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#a5aba5;padding:10px;">No evals yet</td></tr>'; return; }
