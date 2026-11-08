@@ -8,8 +8,17 @@
        color:#1f2421; display:flex; flex-direction:column;
        background:#1aa263; transition:background .5s;}  /* green=hit, turns red via JS */
 
-  .top{color:#fff; flex:2; display:flex; flex-direction:column; align-items:center;
-       justify-content:center; text-align:center; padding:30px 22px;}
+  .top{color:#fff; flex-shrink:0; display:flex; flex-direction:column; align-items:center;
+       justify-content:center; text-align:center; padding:30px 22px; min-height:120px;
+       transition:all .28s ease; overflow:hidden;}
+  /* collapsed (scrolled) — single line: avatar left, goal right */
+  body[scrolled] .top{flex-direction:row; justify-content:space-between; align-items:center;
+       min-height:74px; padding:10px 24px;}
+  body[scrolled] .avatar{width:44px;height:44px;font-size:11px;border-width:2px;}
+  body[scrolled] .tagline{display:none;}
+  body[scrolled] .metric .n{font-size:26px;letter-spacing:-1px;}
+  body[scrolled] .metric .goal{font-size:12px;}
+  .avatar{transition:all .28s ease;}
   .avatar{width:120px; height:120px; border-radius:50%; object-fit:cover;
         border:3px solid rgba(255,255,255,.55); box-shadow:0 6px 20px rgba(0,0,0,.18);}
   .tagline{margin-top:14px; font-size:14px; font-weight:600; opacity:.8; letter-spacing:.2px;}
@@ -40,14 +49,17 @@
   .evals{margin-top:16px; border-top:1px solid #e6e8e6; padding-top:12px;}
   .evals-title{font-size:10px; letter-spacing:1.3px; text-transform:uppercase;
         color:#8a8f8a; font-weight:800; margin-bottom:8px; text-align:center;}
-  .eval-list{display:flex; flex-direction:column; gap:6px;}
-  .eval-row{display:flex; align-items:center; justify-content:space-between;
-        font-size:12px; color:#333; background:#f4f6f4; border-radius:8px; padding:7px 10px;}
-  .eval-date{font-weight:700; color:#111;}
-  .eval-metrics{display:flex; gap:12px; align-items:center;}
-  .eval-tag{font-size:12px; font-weight:700; width:26px; text-align:center;}
-  .eval-tag.up{color:#16a34a;} .eval-tag.down{color:#e0553f;} .eval-tag.flat{color:#a5aba5;}
-  .eval-empty{font-size:12px; color:#a5aba5; text-align:center; padding:6px 0;}
+  .eval-table{width:100%; border-collapse:collapse;}
+  .eval-table th{font-size:9.5px; text-transform:uppercase; letter-spacing:.6px; color:#a5aba5;
+        font-weight:700; text-align:left; padding:0 6px 8px;}
+  .eval-table th.r{text-align:right;}
+  .eval-table td{font-size:13px; color:#333; border-top:1px solid #eef1ee; padding:9px 6px;}
+  .eval-table td .date{font-weight:700; color:#111;}
+  .eval-table td.r{text-align:right;}
+  .glyph{font-weight:800; margin-left:5px;}
+  .glyph.g{color:#16a34a;} .glyph.f{color:#c4c8c4;} .glyph.b{color:#e0553f;}
+  .status{font-weight:800;}
+  .st-good{color:#16a34a;} .st-bad{color:#e0553f;} .st-flat{color:#8a8f8a;}
 </style></head>
 <body>
   <div class="top">
@@ -55,13 +67,16 @@
     <div class="tagline">Your week · Hung's report</div>
     <div class="metric"><span class="n" id="num">230</span> <span class="goal" id="goal">min / 180 goal</span></div>
   </div>
-  <div class="bottom">
+  <div class="bottom" id="bottom">
     <div class="bars" id="bars"></div>
     <div class="xlabels" id="labels"></div>
     <div class="charttitle">Rolling 7-day total</div>
     <div class="evals">
-      <div class="evals-title">Treadmill evals · 15% / 30 min</div>
-      <div class="eval-list" id="evallist"></div>
+      <div class="evals-title">Treadmill evals · 15% incline / 30 min</div>
+      <table class="eval-table">
+        <thead><tr><th>Date</th><th>Efficiency</th><th>Work</th><th class="r">Status</th></tr></thead>
+        <tbody id="evallist"></tbody>
+      </table>
     </div>
   </div>
 
@@ -132,26 +147,41 @@ const EVALS = [
 ];
 (function renderEvals(){
   const list = document.getElementById('evallist');
-  if (!EVALS.length) { list.innerHTML = '<div class="eval-empty">No evals yet</div>'; return; }
-  const tag = (cur, prev) => {
-    if (cur === null || prev === null) return '<span class="eval-tag flat">—</span>';
-    const up = cur > prev, dn = cur < prev, f = !up && !dn;
-    if (up) return '<span class="eval-tag up">↑</span>';
-    if (dn) return '<span class="eval-tag down">↓</span>';
-    return '<span class="eval-tag flat">→</span>';
-  };
-  list.innerHTML = EVALS.map((e, i) => {
+  if (!EVALS.length) { list.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#a5aba5;padding:10px;">No evals yet</td></tr>'; return; }
+  // Glyphs coloured by TRUE good/bad (per axis, inline below): Efficiency good
+  // when HR goes down; Work good when speed goes up.
+  const rows = EVALS.map((e, i) => {
     const prev = EVALS[i+1];
-    const hrTag = i < EVALS.length-1 ? tag(e.hr, prev.hr) : '<span class="eval-tag flat">—</span>';
-    const spTag = i < EVALS.length-1 ? tag(e.kmh, prev.kmh) : '<span class="eval-tag flat">—</span>';
-    return `<div class="eval-row">
-      <span class="eval-date">${e.d}</span>
-      <span class="eval-metrics">
-        <span>${e.hr} bpm</span> ${hrTag}
-        <span>${e.kmh} km/h</span> ${spTag}
-      </span>
-    </div>`;
+    const isFirst = prev === undefined;
+    const hrDir = isFirst ? 0 : Math.sign(e.hr - prev.hr);   // + up, - down
+    const spDir = isFirst ? 0 : Math.sign(e.kmh - prev.kmh);
+    // Eff glyph: good when hr DOWN. Work glyph: good when speed UP.
+    const hrGlyph = isFirst ? '<span class="glyph f">—</span>'
+                : (hrDir < 0 ? '<span class="glyph g">✓</span>' : (hrDir > 0 ? '<span class="glyph b">✗</span>' : '<span class="glyph f">→</span>'));
+    const spGlyph = isFirst ? '<span class="glyph f">—</span>'
+                : (spDir > 0 ? '<span class="glyph g">✓</span>' : (spDir < 0 ? '<span class="glyph b">✗</span>' : '<span class="glyph f">→</span>'));
+    // Verdict: overall improvement / regression
+    let st, stcls;
+    if (isFirst) { st = 'start'; stcls = 'st-flat'; }
+    else if (spDir > 0 || (spDir === 0 && hrDir < 0)) { st = 'Improved'; stcls = 'st-good'; }
+    else if (spDir === 0 && hrDir > 0) { st = 'Regression'; stcls = 'st-bad'; }
+    else if (spDir < 0) { st = 'Regression'; stcls = 'st-bad'; }
+    else { st = 'Steady'; stcls = 'st-flat'; }
+    return `<tr>
+      <td><span class="date">${e.d}</span></td>
+      <td>${e.hr} ${hrGlyph}</td>
+      <td>${e.kmh} ${spGlyph}</td>
+      <td class="r"><span class="status ${stcls}">${st}</span></td>
+    </tr>`;
   }).join('');
+  list.innerHTML = rows;
+})();
+// === Header collapse on scroll (Slim): single line avatar-left / goal-right ===
+(function(){
+  const bottom = document.getElementById('bottom');
+  const upd = () => { if (bottom.scrollTop > 6) document.body.setAttribute('scrolled',''); else document.body.removeAttribute('scrolled'); };
+  bottom.addEventListener('scroll', upd);
+  upd();
 })();
 </script>
 </body></html>
