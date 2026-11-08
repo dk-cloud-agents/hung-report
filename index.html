@@ -177,10 +177,23 @@ const EVALS = [
   list.innerHTML = rows;
 })();
 // === Header collapse on scroll (Slim): single line avatar-left / goal-right ===
+// Listen on BOTH the window AND the scrollable bottom container — on iOS Safari the
+// actual scrolled element can be either, depending on layout. Collapse when either
+// scrolls down past a threshold; expand when back near the top (full header state).
 (function(){
   const bottom = document.getElementById('bottom');
-  const upd = () => { if (bottom.scrollTop > 6) document.body.setAttribute('scrolled',''); else document.body.removeAttribute('scrolled'); };
-  bottom.addEventListener('scroll', upd);
+  const THRESHOLD = 6;
+  const setCollapsed = (down) => {
+    if (down) document.body.setAttribute('scrolled','');
+    else document.body.removeAttribute('scrolled');
+  };
+  const upd = () => {
+    const y = Math.max(bottom.scrollTop, window.scrollY || document.documentElement.scrollTop || 0);
+    setCollapsed(y > THRESHOLD);
+  };
+  // run on scroll for whichever container is the real scroller
+  window.addEventListener('scroll', upd, { passive: true });
+  bottom.addEventListener('scroll', upd, { passive: true });
   upd();
 })();
 </script>
