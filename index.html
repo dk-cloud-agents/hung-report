@@ -3,18 +3,21 @@
 <title>Your week · Hung's report</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
-  html,body{height:100%;}
+  html,body{-webkit-text-size-adjust:100%;}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-       color:#1f2421; display:flex; flex-direction:column;
-       background:#1aa263; transition:background .5s;}  /* green=hit, turns red via JS */
+       color:#1f2421; margin:0; background:#1aa263; transition:background .5s;}
+       /* green=hit, turns red via JS */
 
-  .top{color:#fff; flex-shrink:0; display:flex; flex-direction:column; align-items:center;
-       justify-content:center; text-align:center; padding:30px 22px; min-height:120px;
-       transition:all .28s ease; overflow:hidden;}
+  /* header is position:sticky so it stays pinned at the top; it COLLAPSES from
+     a full state to a slim single-line (avatar left / goal right) on scroll.
+     Native page scroll — NO inner overflow container (that pattern breaks iOS). */
+  .top{position:sticky; top:0; z-index:10; color:#fff; display:flex; flex-direction:column;
+       align-items:center; justify-content:center; text-align:center; padding:30px 22px;
+       min-height:150px; transition:all .28s ease; overflow:hidden; background:inherit;}
   /* collapsed (scrolled) — single line: avatar left, goal right */
   body[scrolled] .top{flex-direction:row; justify-content:space-between; align-items:center;
-       min-height:74px; padding:10px 24px;}
-  body[scrolled] .avatar{width:44px;height:44px;font-size:11px;border-width:2px;}
+       min-height:64px; padding:8px 24px;}
+  body[scrolled] .avatar{width:42px;height:42px;font-size:11px;border-width:2px;}
   body[scrolled] .tagline{display:none;}
   body[scrolled] .metric .n{font-size:26px;letter-spacing:-1px;}
   body[scrolled] .metric .goal{font-size:12px;}
@@ -26,9 +29,8 @@
   .metric .n{font-size:92px; font-weight:800; letter-spacing:-3px;}
   .metric .goal{font-size:32px; font-weight:700; opacity:.95; letter-spacing:-.5px;}
 
-  .bottom{background:#fff; flex:1; padding:16px 20px 22px; border-top-left-radius:24px;
-        border-top-right-radius:24px; box-shadow:0 -6px 24px rgba(0,0,0,.08);
-        overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch;}
+  .bottom{background:#fff; padding:16px 20px 22px; border-top-left-radius:24px;
+        border-top-right-radius:24px; box-shadow:0 -6px 24px rgba(0,0,0,.08);}
   .bars{display:flex; align-items:flex-end; gap:5px; height:120px; position:relative;
         padding-top:16px;}
   .bar{flex:1; min-width:0; border-radius:6px 6px 2px 2px; position:relative;}
@@ -177,23 +179,17 @@ const EVALS = [
   list.innerHTML = rows;
 })();
 // === Header collapse on scroll (Slim): single line avatar-left / goal-right ===
-// Listen on BOTH the window AND the scrollable bottom container — on iOS Safari the
-// actual scrolled element can be either, depending on layout. Collapse when either
-// scrolls down past a threshold; expand when back near the top (full header state).
+// The page now scrolls NATIVELY (no inner overflow container); the header is
+// position:sticky, so listen on the window only. Collapse on scroll down past a
+// threshold; expand when back near the top.
 (function(){
-  const bottom = document.getElementById('bottom');
   const THRESHOLD = 6;
   const setCollapsed = (down) => {
     if (down) document.body.setAttribute('scrolled','');
     else document.body.removeAttribute('scrolled');
   };
-  const upd = () => {
-    const y = Math.max(bottom.scrollTop, window.scrollY || document.documentElement.scrollTop || 0);
-    setCollapsed(y > THRESHOLD);
-  };
-  // run on scroll for whichever container is the real scroller
+  const upd = () => { setCollapsed(window.scrollY > THRESHOLD); };
   window.addEventListener('scroll', upd, { passive: true });
-  bottom.addEventListener('scroll', upd, { passive: true });
   upd();
 })();
 </script>
