@@ -15,8 +15,8 @@ Executed: 2026-11-08 in a real headless Chrome against the built `web/index.html
 
 | # | Case | Result | Evidence |
 |---|------|--------|----------|
-| T5 | Collapse on scroll | ✅ PASS | header becomes `row` layout, min-height 74px (avatar left / goal right) |
-| T6 | Expand at top | ✅ PASS | header returns to full column layout when scrolled attr removed |
+| T5 | Collapse on scroll | ✅ PASS | REAL scroll event (window AND inner container) sets collapsed: header becomes `row`, min-height 74px (avatar left / goal right) |
+| T6 | Expand at top | ✅ PASS | REAL scroll to top removes the collapse, header returns to full column + tagline |
 
 ## eval-tracker (verdict table)
 

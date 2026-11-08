@@ -16,7 +16,7 @@
 
 | # | Test case | Input | Expected outcome | Status |
 |---|-----------|-------|------------------|--------|
-| T5 | Collapse on scroll | Scroll content down | Header becomes a single line (avatar left, goal right), tagline hidden | pending |
+| T5 | Collapse on scroll | Scroll the window and, separately, the inner container (both are the real scroller on different layouts) | Header becomes a single line (avatar left, goal right), tagline hidden | pending |
 | T6 | Expand at top | Scroll back to top | Header returns to full avatar + number + tagline | pending |
 
 ## eval-tracker (verdict table)
