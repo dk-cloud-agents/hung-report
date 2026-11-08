@@ -1,24 +1,37 @@
-# Test results — bar-tap + eval-tracker
+# Test results — bar-tap + eval-tracker + collapse header
 
-Executed: 2026-11-08 in a real headless Chrome against the built `web/index.html` (and a temp copy for the empty-state case). Method: DOM-driven `MouseEvent('click')` + text assertions; evidence = the returned DOM state, not screenshots.
+Executed: 2026-11-08 in a real headless Chrome against the built `web/index.html` (and a temp copy for the empty-state case). Method: DOM-driven `MouseEvent('click')`/scroll + text assertions; evidence = returned DOM state and console output.
 
-## bar-detail
-
-| # | Case | Result | Evidence |
-|---|------|--------|----------|
-| T1 | Tap newest bar → that date's total | ✅ PASS | readout = `11-08: 204 min in the last 7 days` (matches `rolling[]` last = 204) |
-| T2 | Tap a past bar → recoverable | ✅ PASS | readout = `11-06: 200 min in the last 7 days` (index 11 → dates[11]="11-06", rolling[11]=200) |
-| T3 | Readout matches bar value | ✅ PASS | tap idx4 → `10-30: 60 min...`; both `shown` and `expected` = 60, from `rolling[]` |
-| T4 | Tap outside clears readout | ✅ PASS | before=`10-30: 60 min`, after body click → readout = `` (empty) |
-
-## eval-tracker
+## bar-detail (tap → number tooltip)
 
 | # | Case | Result | Evidence |
 |---|------|--------|----------|
-| T5 | Rows render newest-first w/ HR+speed | ✅ PASS | 5 rows; first row innerText = `30.10 · 138 bpm · 3.3 km/h` |
-| T6 | Trend tags on non-first rows | ✅ PASS | non-first rows carry tags: `↑,↑` / `↑,↑` / `↓,↑` (HR,speed) |
-| T7 | Flat detection (same speed) | ✅ PASS | 30.10 vs 29.10 → tags `[↑, →]` = HR up, speed flat (both 3.3) |
-| T8 | Empty state | ✅ PASS | with `EVALS=[]` the list renders exactly `<div class="eval-empty">No evals yet</div>`, no rows, no error |
-| T9 | Long-session eligibility (data rule) | ✅ PASS (by construction) | longer-than-30-min sessions only appear when a valid 30-min-window HR+speed row is recorded; no unqualified longer session is present in `EVALS` |
+| T1 | Tap newest bar → total tooltip | ✅ PASS | tooltip text = `204`, bar marked tapped |
+| T2 | Tap a past bar → recoverable | ✅ PASS | tap idx11 → tooltip `200` (= rolling[11], date 11-06) |
+| T3 | Tooltip = bar value, number only | ✅ PASS | tooltip shows exactly the number, no other text |
+| T4 | Tap outside clears | ✅ PASS | after outside click, 0 bars marked tapped |
 
-**Summary: 9/9 pass. No failures.** The two features behave as specified in `bar-tap-eval-tracker`.
+## Collapse header (Slim)
+
+| # | Case | Result | Evidence |
+|---|------|--------|----------|
+| T5 | Collapse on scroll | ✅ PASS | header becomes `row` layout, min-height 74px (avatar left / goal right) |
+| T6 | Expand at top | ✅ PASS | header returns to full column layout when scrolled attr removed |
+
+## eval-tracker (verdict table)
+
+| # | Case | Result | Evidence |
+|---|------|--------|----------|
+| T7 | Table renders | ✅ PASS | "Treadmill evals · 15% incline / 30 min" with Date/Efficiency/Work/Status, 5 rows newest-first |
+| T8 | HR up + speed same = Regression | ✅ PASS | 30.10 row Status = `Regression` (red) |
+| T9 | Speed up / HR down = Improved | ✅ PASS | 29.10/18.08/10.08 Status = `Improved` (green) |
+| T10 | First eval = start | ✅ PASS | 05.08 Status = `start` (grey) |
+| T11 | Efficiency ✓ when HR down | ✅ PASS | 10.08 `106 ✓` (HR down vs 113) |
+| T12 | Work ✓ when speed up | ✅ PASS | 18.08 `3 ✓` (speed up vs 2.5) |
+| T13 | Efficiency ✗ when HR up at same speed | ✅ PASS | 30.10 `138 ✗` (regression) |
+| T14 | Empty state | ✅ PASS | renders "No evals yet" in a full-width cell, no error |
+| T15 | Long-session eligibility (data rule) | ✅ PASS (by construction) | only qualified 30-min-window evals present in EVALS; none unqualified |
+| T16 | Console clean | ✅ PASS | 0 console lines/errors on page load |
+
+**Summary: 16/16 pass. No failures.**
+Bonus: caught and fixed a real bug during testing — the scroll-collapse initially failed because `.bottom` lacked `id="bottom"`, surfacing as a `null.addEventListener` error that the console check caught.
