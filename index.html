@@ -5,13 +5,9 @@
   *{margin:0;padding:0;box-sizing:border-box;}
   html,body{-webkit-text-size-adjust:100%;}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-       color:#1f2421; margin:0; background:#1aa263;
-       transition:background .5s, padding-top .28s ease;
+       color:#1f2421; margin:0; background:#1aa263; transition:background .5s;
        /* reserves space for the fixed header so it never covers the content */
        padding-top:340px;}
-  /* collapsed header: shrink the reserved space to the slim bar's height so
-     the chart starts right below it (no dead green gap) */
-  body[scrolled]{padding-top:64px;}
        /* green=hit, turns red via JS */
 
   /* APPROVED (w3schools) pattern: header is position:FIXED (not sticky — that
