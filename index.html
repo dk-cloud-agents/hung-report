@@ -18,12 +18,19 @@
   .metric .goal{font-size:32px; font-weight:700; opacity:.95; letter-spacing:-.5px;}
 
   .bottom{background:#fff; flex:1; padding:16px 20px 22px; border-top-left-radius:24px;
-        border-top-right-radius:24px; box-shadow:0 -6px 24px rgba(0,0,0,.08); overflow:hidden;}
+        border-top-right-radius:24px; box-shadow:0 -6px 24px rgba(0,0,0,.08);
+        overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch;}
   .bars{display:flex; align-items:flex-end; gap:5px; height:120px; position:relative;
         padding-top:16px;}
-  .bar{flex:1; min-width:0; border-radius:6px 6px 2px 2px;}
+  .bar{flex:1; min-width:0; border-radius:6px 6px 2px 2px; position:relative;}
   .bar.ok{background:#22c55e;} .bar.no{background:#e0553f;}
   .goal-line{position:absolute; left:0; right:0; border-top:2px dashed #16a34a; opacity:.75;}
+  .tooltip{position:absolute; bottom:calc(100% + 6px); left:50%; transform:translateX(-50%);
+        background:#1f2421; color:#fff; font-size:13px; font-weight:700; padding:3px 8px;
+        border-radius:6px; white-space:nowrap; pointer-events:none; opacity:0;
+        transition:opacity .12s; z-index:5;}
+  .bar.tapped .tooltip{opacity:1;}
+  .bar.tapped{outline:2px solid #1f2421; outline-offset:2px;}
   .xlabels{display:flex; gap:5px; margin-top:9px;}
   .xlabels span{flex:1; text-align:center; font-size:8.5px; color:#a5aba5;}
   .charttitle{margin-top:10px; font-size:10px; letter-spacing:1.3px; text-transform:uppercase;
@@ -50,7 +57,6 @@
   </div>
   <div class="bottom">
     <div class="bars" id="bars"></div>
-    <div class="readout" id="readout"></div>
     <div class="xlabels" id="labels"></div>
     <div class="charttitle">Rolling 7-day total</div>
     <div class="evals">
@@ -92,20 +98,25 @@ gl.style.top = goalTopPx + 'px';
 bars.appendChild(gl);
 document.getElementById('labels').innerHTML = dates.map(d => `<span>${d}</span>`).join('');
 
-// === Feature 1: bar tap → reveal that date's trailing-7-day total ===
-const readout = document.getElementById('readout');
-const barEls = Array.from(bars.children).filter(el => el.classList.contains('bar'));
-barEls.forEach((el, i) => {
+// === Feature 1: bar tap → tooltip with that date's trailing-7-day total ===
+// Each bar gets an inline tooltip showing ONLY the number (e.g. "200"). Tapping a
+// bar toggles its tooltip; tapping elsewhere clears.
+const barsEl = document.getElementById('bars');
+barsEl.querySelectorAll('.bar').forEach((el, i) => {
+  const tip = document.createElement('div'); tip.className = 'tooltip';
+  tip.textContent = String(rolling[i]);          // just the number
+  el.appendChild(tip);
   el.style.cursor = 'pointer';
   el.addEventListener('click', e => {
     e.stopPropagation();
-    const d = dates[i], v = rolling[i];
-    readout.textContent = `${d}: ${v} min in the last 7 days`;
+    const was = el.classList.contains('tapped');
+    barsEl.querySelectorAll('.bar.tapped').forEach(b => b.classList.remove('tapped'));
+    if (!was) el.classList.add('tapped');
   });
 });
-// tap outside a bar → clear the readout
 document.addEventListener('click', e => {
-  if (!e.target.classList || !e.target.classList.contains('bar')) readout.textContent = '';
+  if (!e.target.classList || !e.target.classList.contains('bar'))
+    barsEl.querySelectorAll('.bar.tapped').forEach(b => b.classList.remove('tapped'));
 });
 
 // === Feature 2: eval tracker (15% / 30 min treadmill evals) ===
