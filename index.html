@@ -62,7 +62,11 @@ bars.innerHTML = rolling.map(v => {
   return `<div class="bar ${v>=GOAL?'ok':'no'}" style="height:${h}%"></div>`;
 }).join('');
 const gl = document.createElement('div'); gl.className = 'goal-line';
-gl.style.top = (100 - Math.round(GOAL/maxRoll*100)) + '%';
+const barH    = bars.clientHeight;
+const padTop  = parseFloat(getComputedStyle(bars).paddingTop) || 0;
+const contentH = barH - padTop;
+const goalTopPx = padTop + (1 - GOAL/maxRoll) * contentH;
+gl.style.top = goalTopPx + 'px';
 bars.appendChild(gl);
 document.getElementById('labels').innerHTML = dates.map(d => `<span>${d}</span>`).join('');
 </script>
