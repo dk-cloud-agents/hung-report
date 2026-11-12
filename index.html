@@ -90,7 +90,7 @@
 const GOAL = 180;
 // Data: date + trailing-7-day total minutes. Update these to keep the report fresh.
 const dates   = ["10-30", "10-31", "11-01", "11-02", "11-03", "11-04", "11-05", "11-06", "11-07", "11-08", "11-09", "11-10", "11-11", "11-12"];
-const rolling = [60, 60, 110, 163, 187, 222, 230, 200, 254, 234, 209, 216, 181, 157];
+const rolling = [60, 60, 110, 163, 187, 222, 230, 200, 254, 234, 209, 216, 181, 187];
 
 const last = rolling[rolling.length-1];
 const met  = last >= GOAL;
@@ -144,7 +144,7 @@ document.addEventListener('click', e => {
 // date | avg HR (bpm) | speed (km/h) — newest first. Log the 30-min-window avg
 // HR when a session was longer than 30 min; longer sessions without a valid
 // 30-min-window HR are excluded (eligibility rule).
-const EVALS = [{ d: "08.11", hr: 127, kmh: 3.3 }, { d: "30.10", hr: 138, kmh: 3.3 }, { d: "29.10", hr: 136, kmh: 3.3 }, { d: "18.08", hr: 112, kmh: 3.0 }, { d: "10.08", hr: 106, kmh: 2.5 }, { d: "05.08", hr: 113, kmh: 2.4 }];
+const EVALS = [{ d: "12.11", hr: 137, kmh: 3.3 }, { d: "08.11", hr: 127, kmh: 3.3 }, { d: "30.10", hr: 138, kmh: 3.3 }, { d: "29.10", hr: 136, kmh: 3.3 }, { d: "18.08", hr: 112, kmh: 3.0 }, { d: "10.08", hr: 106, kmh: 2.5 }, { d: "05.08", hr: 113, kmh: 2.4 }];
 (function renderEvals(){
   const list = document.getElementById('evallist');
   if (!EVALS.length) { list.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#a5aba5;padding:10px;">No evals yet</td></tr>'; return; }
