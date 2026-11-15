@@ -182,6 +182,7 @@ document.addEventListener('click', e => {
 const dayBars  = barsD.querySelectorAll('.bar');
 const dayLabs  = document.querySelectorAll('#labelsD span');
 const weekbox  = document.createElement('div'); weekbox.className = 'weekbox';
+weekbox.style.display = 'none';          // hidden until a bar is selected
 barsD.appendChild(weekbox);
 let sel = -1;   // index into dates[]; -1 = nothing selected
 
