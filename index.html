@@ -148,9 +148,10 @@ document.getElementById('labelsD').innerHTML = dates.map(d => `<span>${d}</span>
 (function emptyState(){
   if (daily.some(v => v > 0)) return;
   const box = document.getElementById('barsD');
+  box.setAttribute('data-empty','1');
   box.innerHTML = '<div style="width:100%;text-align:center;color:#a5aba5;font-size:13px;padding-top:44px;">No endurance sessions yet</div>';
   document.getElementById('labelsD').innerHTML = '';
-})
+})();
 
 // === Feature 1: bar tap → tooltip with that date's trailing-7-day total ===
 // Each rolling bar gets an inline tooltip showing ONLY the number (e.g. "200").
@@ -185,6 +186,7 @@ barsD.appendChild(weekbox);
 let sel = -1;   // index into dates[]; -1 = nothing selected
 
 function applySel(){
+  if (dayBars.length === 0) return;   // daily chart empty → nothing to highlight
   if (sel < 0){
     weekbox.style.display = 'none';
     barsEl.querySelectorAll('.bar.sel').forEach(b => b.classList.remove('sel'));
