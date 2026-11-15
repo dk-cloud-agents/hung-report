@@ -56,7 +56,7 @@
         background:rgba(31,36,33,.07); pointer-events:none; z-index:0; transition:left .18s ease,right .18s ease;}
   .bar.sel{outline:2px solid #1f2421; outline-offset:2px; z-index:2;}
   .bar.hdim{opacity:.22;}
-  #barsD{padding-bottom:14px;}             /* room for the weekbox border to sit below the bars, not on them */
+  #barsD{padding-bottom:5px;}              /* matches the 5px inter-bar gap: frame inset is equal on left/right/bottom */
   #barsD .bar{z-index:1;}
   #labelsD span.hl{color:#1f2421; font-weight:800; font-size:9px;}
   .readout{min-height:24px; margin:8px 0 0; font-size:14px; font-weight:700; color:#222;
@@ -209,12 +209,13 @@ function applySel(){
   dayBars.forEach((b, j) => b.classList.toggle('hdim', j < lo || j > sel));
   dayLabs.forEach((s, j) => s.classList.toggle('hl', j >= lo && j <= sel));
   // Box geometry in px from the pinned day bars (both rulers share one box).
-  // The box is inset by HALF the flex gap so its black border sits in the gap
-  // BESIDE the first/last bars, never on top of them (D K flagged the overlap).
-  const halfGap = parseFloat(getComputedStyle(barsD).gap) / 2 || 2.5;
+  // The box is inset by the FULL flex gap on left/right so the frame sits an
+  // equal 5px from the bars on ALL three sides (matching #barsD padding-bottom),
+  // never over any bar (D K: make the gap consistent on left, right, bottom).
+  const inset = parseFloat(getComputedStyle(barsD).gap) || 5;
   const first = dayBars[lo], lastEl = dayBars[sel];
-  weekbox.style.left   = (first.offsetLeft - halfGap) + 'px';
-  weekbox.style.right  = (barsD.clientWidth - lastEl.offsetLeft - lastEl.offsetWidth - halfGap) + 'px';
+  weekbox.style.left   = (first.offsetLeft - inset) + 'px';
+  weekbox.style.right  = (barsD.clientWidth - lastEl.offsetLeft - lastEl.offsetWidth - inset) + 'px';
 }
 
 rollEl.querySelectorAll('.bar').forEach((el, i) => {
