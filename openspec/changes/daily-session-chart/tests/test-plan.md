@@ -26,7 +26,7 @@ substituted (temp copy) for edge states.
 | 14 | No console errors | Every step above | `window.__con` is empty on load and after each interaction | pending |
 | 15 | Daily bars tappable (shared function) | Tap a daily bar (idx12, `daily=62`) | Bar shows black `.tapped` outline + tooltip "62" — same behaviour/logic as rolling bars | pending |
 | 16 | Window box inset (border beside bars) | Select a rolling bar (idx13) | Box left/right edges sit one flex-half-gap outside the first/last enclosed bars, not over them | pending |
-| 17 | Window box clears the bar bottoms | Select a rolling bar (idx13) | Box bottom border sits in padding below the lowest bar (14px gap); no bar touches the border | pending |
+| 17 | Window box frame equally spaced from the bars | Select a rolling bar (idx13) | Box left, right, and bottom borders each sit ≈5px from the enclosed bars (equal on all sides); no bar touches the border | pending |
 
 ## Not runnable / N/A (stated reason)
 

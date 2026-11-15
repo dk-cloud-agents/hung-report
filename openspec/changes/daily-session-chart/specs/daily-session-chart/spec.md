@@ -80,13 +80,9 @@ The daily-endurance bars SHALL be tappable exactly like the rolling bars: tappin
 - **WHEN** D K taps another bar or taps outside the bars after revealing a daily tooltip
 - **THEN** the previous tooltip clears (single active tooltip at a time), matching the rolling chart
 
-### Requirement: The window box border sits beside the bars, not on them
-The window box SHALL be inset relative to the enclosed bars so its black border falls in the gaps around the window bars — beside the first and last bars on the sides and below them at the bottom — never drawn on top of a bar.
+### Requirement: The window box border sits beside the bars, never on them
+The window box SHALL be spaced an equal distance from the enclosed bars on the left, right, and bottom — each border ≈5px from the nearest bar, matching the inter-bar gap — so the frame reads as a clean outline around the window and never overlaps any bar.
 
-#### Scenario: Box border in the side gaps
+#### Scenario: Box frame equally spaced on all sides
 - **WHEN** a 7-day window box is shown around bars
-- **THEN** its left and right borders sit one half-gap outside the first and last enclosed bars, leaving the bars' side edges uncovered
-
-#### Scenario: Box border clears the bar bottoms
-- **WHEN** a 7-day window box is shown around bars
-- **THEN** its bottom border sits in padding below the lowest enclosed bar (not on top of it), so no bar touches the border
+- **THEN** its left, right, and bottom borders each sit the same gap (≈5px) from the enclosed bars, and no bar touches the border

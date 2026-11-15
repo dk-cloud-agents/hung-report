@@ -22,7 +22,7 @@ Real sheet data (14 dates: 11-02..11-15; `daily` from Zone 2 Volume col B).
 | 14 | No console errors across all interactions | **PASS** | `window.__con` empty on load and after every case |
 | 15 | Daily bars tappable (shared function) | **PASS** | Tap daily idx12 → 1 black `.tapped` outline, tooltip "62" (= `daily[12]`); tap-again/outside clears; `enableBarTooltip` single code path for both charts |
 | 16 | Window box inset (border beside bars) | **PASS** | Select rolling idx13: `boxLeft = first.offsetLeft − 2.5px`, `boxRightEdge = last.offsetLeft + width + 2.5px` (half-gap = 2.5), border in the gap, not over bars |
-| 17 | Window box clears the bar bottoms | **PASS** | `#barsD` has `padding-bottom:14px`; measured bar-bottom 672 vs container-bottom 686 → 14px gap below the lowest bar, box bottom border sits there, no bar overlaps |
+| 17 | Window box clears the bar bottoms | **PASS** | `#barsD` `padding-bottom:5px`; measured left/right/bottom gaps all ≈5px (4.98/5/5) — frame equally spaced from the bars on all three sides, no overlap |
 
 ## N/A (not runnable here, stated reason)
 - iOS Safari touch/scroll **feel** and on-device layout — cannot verify headlessly. Flagged for D K's own
