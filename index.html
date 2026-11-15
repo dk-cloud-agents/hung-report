@@ -48,8 +48,16 @@
   .bar.tapped{outline:2px solid #1f2421; outline-offset:2px;}
   .xlabels{display:flex; gap:5px; margin-top:9px;}
   .xlabels span{flex:1; text-align:center; font-size:8.5px; color:#a5aba5;}
-  .charttitle{margin-top:10px; font-size:10px; letter-spacing:1.3px; text-transform:uppercase;
+  .charttitle{margin:14px 0 8px; font-size:10px; letter-spacing:1.3px; text-transform:uppercase;
         color:#8a8f8a; font-weight:800; text-align:center;}
+  .charttitle:first-child{margin-top:0;}
+  .divider{height:1px; background:#e6e8e6; margin:18px 0 12px;}
+  .weekbox{position:absolute; top:6px; bottom:0; border:2px solid #1f2421; border-radius:10px;
+        background:rgba(31,36,33,.07); pointer-events:none; z-index:0; transition:left .18s ease,right .18s ease;}
+  .bar.sel{outline:2px solid #1f2421; outline-offset:2px; z-index:2;}
+  .bar.hdim{opacity:.22;}
+  #barsD .bar{z-index:1;}
+  #labelsD span.hl{color:#1f2421; font-weight:800; font-size:9px;}
   .readout{min-height:24px; margin:8px 0 0; font-size:14px; font-weight:700; color:#222;
         text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .evals{margin-top:16px; border-top:1px solid #e6e8e6; padding-top:12px;}
@@ -74,9 +82,16 @@
     <div class="metric"><span class="n" id="num">230</span> <span class="goal" id="goal">min / 180 goal</span></div>
   </div>
   <div class="bottom" id="bottom">
+    <div class="charttitle">Rolling 7-day total</div>
     <div class="bars" id="bars"></div>
     <div class="xlabels" id="labels"></div>
-    <div class="charttitle">Rolling 7-day total</div>
+
+    <div class="divider"></div>
+
+    <div class="charttitle">Daily endurance minutes</div>
+    <div class="bars" id="barsD"></div>
+    <div class="xlabels" id="labelsD"></div>
+
     <div class="evals">
       <div class="evals-title">Treadmill evals · 15% incline / 30 min</div>
       <table class="eval-table">
@@ -91,6 +106,9 @@ const GOAL = 180;
 // Data: date + trailing-7-day total minutes. Update these to keep the report fresh.
 const dates   = ["11-02", "11-03", "11-04", "11-05", "11-06", "11-07", "11-08", "11-09", "11-10", "11-11", "11-12", "11-13", "11-14", "11-15"];
 const rolling = [163, 187, 222, 230, 200, 254, 234, 209, 216, 181, 187, 226, 234, 204];
+// Per-day endurance total minutes for the SAME dates as above (Zone 2 Volume col B).
+// populate at publish time — keep aligned one-to-one with dates[]/rolling[].
+const daily = [53.0, 24.0, 35.0, 38.0, 0.0, 54.0, 30.0, 28.0, 31.0, 0.0, 44.5, 39.2, 62.0, 0.0];
 
 const last = rolling[rolling.length-1];
 const met  = last >= GOAL;
@@ -100,28 +118,43 @@ document.body.style.background = met ? "#1aa263" : "#e0553f";
 document.getElementById('num').textContent = last;
 document.getElementById('goal').textContent = "min / " + GOAL + " goal";
 
-const maxRoll = Math.max(...rolling, GOAL) * 1.1;
-const bars = document.getElementById('bars');
-bars.innerHTML = rolling.map(v => {
-  const h = Math.max(Math.round(v/maxRoll*100), 4);
-  return `<div class="bar ${v>=GOAL?'ok':'no'}" style="height:${h}%"></div>`;
-}).join('');
-const gl = document.createElement('div'); gl.className = 'goal-line';
-// Position the goal line where a bar of height == GOAL would reach. Bars are
-// bottom-aligned with height = % of the CONTENT box; an absolutely positioned
-// element's % is relative to the PADDING box, so a naive `top: %` lands ~padding
-// too high. Measure the real boxes and convert to px to keep them aligned.
-const barH    = bars.clientHeight;                        // padding box height
-const padTop  = parseFloat(getComputedStyle(bars).paddingTop) || 0;
-const contentH = barH - padTop;                           // content box height
-const goalTopPx = padTop + (1 - GOAL/maxRoll) * contentH;
-gl.style.top = goalTopPx + 'px';
-bars.appendChild(gl);
+// Draw a bar chart into a container. Returns the container. `threshold` > 0
+// adds a dashed goal line positioned against the SAME content box as the bars
+// (px-measured — the %-mixing trap that mislaid the goal line before).
+function drawChart(id, values, threshold, goalLine){
+  const box = document.getElementById(id);
+  const max = Math.max(...values, threshold) * 1.1;
+  box.innerHTML = values.map(v => {
+    const h = Math.max(Math.round(v/max*100), 4);
+    const ok = threshold > 0 && v >= threshold;
+    const cls = threshold > 0 ? (ok ? 'ok' : 'no') : (v > 0 ? 'ok' : 'zero');
+    return v > 0 ? `<div class="bar ${cls}" style="height:${h}%"></div>`
+                 : `<div class="bar ${cls}" style="height:0"></div>`;
+  }).join('');
+  if (goalLine){
+    const gl = document.createElement('div'); gl.className = 'goal-line';
+    const barH = box.clientHeight, padTop = parseFloat(getComputedStyle(box).paddingTop) || 0;
+    const contentH = barH - padTop;
+    gl.style.top = padTop + (1 - threshold/max) * contentH + 'px';
+    box.appendChild(gl);
+  }
+  return box;
+}
+const bars   = drawChart('bars',  rolling, GOAL, true);
+const barsD  = drawChart('barsD', daily,   0,    false);
 document.getElementById('labels').innerHTML = dates.map(d => `<span>${d}</span>`).join('');
+document.getElementById('labelsD').innerHTML = dates.map(d => `<span>${d}</span>`).join('');
+// Empty state for the daily chart: no sessions at all → show a message.
+(function emptyState(){
+  if (daily.some(v => v > 0)) return;
+  const box = document.getElementById('barsD');
+  box.innerHTML = '<div style="width:100%;text-align:center;color:#a5aba5;font-size:13px;padding-top:44px;">No endurance sessions yet</div>';
+  document.getElementById('labelsD').innerHTML = '';
+})
 
 // === Feature 1: bar tap → tooltip with that date's trailing-7-day total ===
-// Each bar gets an inline tooltip showing ONLY the number (e.g. "200"). Tapping a
-// bar toggles its tooltip; tapping elsewhere clears.
+// Each rolling bar gets an inline tooltip showing ONLY the number (e.g. "200").
+// Tapping a bar toggles its tooltip; tapping elsewhere clears.
 const barsEl = document.getElementById('bars');
 barsEl.querySelectorAll('.bar').forEach((el, i) => {
   const tip = document.createElement('div'); tip.className = 'tooltip';
@@ -138,6 +171,50 @@ barsEl.querySelectorAll('.bar').forEach((el, i) => {
 document.addEventListener('click', e => {
   if (!e.target.classList || !e.target.classList.contains('bar'))
     barsEl.querySelectorAll('.bar.tapped').forEach(b => b.classList.remove('tapped'));
+});
+
+// === Feature 3: linked 7-day window selection (approved Variant 1) ===
+// Tapping a rolling bar highlights in the daily chart below the exact 7 days
+// (selected date + 6 back) that compose that rolling total. ONE black box +
+// dim outside + darken window labels. No pre-selection; tap-again/tap-outside
+// clears; left edge clamps to the earliest day.
+const dayBars  = barsD.querySelectorAll('.bar');
+const dayLabs  = document.querySelectorAll('#labelsD span');
+const weekbox  = document.createElement('div'); weekbox.className = 'weekbox';
+barsD.appendChild(weekbox);
+let sel = -1;   // index into dates[]; -1 = nothing selected
+
+function applySel(){
+  if (sel < 0){
+    weekbox.style.display = 'none';
+    barsEl.querySelectorAll('.bar.sel').forEach(b => b.classList.remove('sel'));
+    dayBars.forEach(b => b.classList.remove('hdim'));
+    dayLabs.forEach(s => s.classList.remove('hl'));
+    return;
+  }
+  weekbox.style.display = '';
+  const lo = Math.max(0, sel - 6);
+  barsEl.querySelectorAll('.bar.sel').forEach(b => b.classList.remove('sel'));
+  barsEl.querySelectorAll('.bar')[sel].classList.add('sel');
+  dayBars.forEach((b, j) => b.classList.toggle('hdim', j < lo || j > sel));
+  dayLabs.forEach((s, j) => s.classList.toggle('hl', j >= lo && j <= sel));
+  // Box geometry in px from the pinned day bars (both rulers share one box).
+  const first = dayBars[lo], lastEl = dayBars[sel];
+  weekbox.style.left  = first.offsetLeft + 'px';
+  weekbox.style.right = (barsD.clientWidth - lastEl.offsetLeft - lastEl.offsetWidth) + 'px';
+}
+
+barsEl.querySelectorAll('.bar').forEach((el, i) => {
+  el.addEventListener('click', e => {
+    e.stopPropagation();
+    sel = (sel === i) ? -1 : i;       // tap the same bar again → deselect
+    applySel();
+  });
+});
+document.addEventListener('click', e => {
+  // tapping outside any rolling bar clears the window selection
+  if (sel >= 0 && (!e.target.classList || !e.target.classList.contains('bar')))
+    { sel = -1; applySel(); }
 });
 
 // === Feature 2: eval tracker (15% / 30 min treadmill evals) ===
