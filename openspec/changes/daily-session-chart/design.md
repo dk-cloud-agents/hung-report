@@ -72,7 +72,7 @@ The rolling-7-day bars gain a `click` handler that ties the top chart to the dai
 
 The daily chart's own bars are tappable via the SAME shared tooltip function as the rolling bars (`enableBarTooltip(boxId, values)`) — one function, called once per chart with its own value array, so a daily tap shows a black outline + that day's total, identically to the rolling chart. The daily bars are NOT part of the 7-day window *selection* (no per-day outline mode on the window; that rejected Variant 2 stays out).
 
-The window box must not cover the bars: its left/right edges are placed **one half-gap outside** the first/last enclosed bars (`left = first.offsetLeft − halfGap`; `right = cw − lastEl.offsetLeft − lastEl.offsetWidth − halfGap`, where `halfGap = flex gap ÷ 2`), so the black border sits in the gap BESIDE the bars, never over them.
+The window box must not cover the bars: its left/right edges are placed **one half-gap outside** the first/last enclosed bars (`left = first.offsetLeft − halfGap`; `right = cw − lastEl.offsetLeft − lastEl.offsetWidth − halfGap`, where `halfGap = flex gap ÷ 2`). The `#barsD` container also carries `padding-bottom:14px` so the bars no longer touch the box's bottom edge and its bottom border sits in that padding, clear of the bars. Net effect: the black border is in the gaps on the sides AND below, never over any bar.
 
 ## publish_report.py changes
 

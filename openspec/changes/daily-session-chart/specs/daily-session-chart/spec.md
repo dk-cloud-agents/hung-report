@@ -81,8 +81,12 @@ The daily-endurance bars SHALL be tappable exactly like the rolling bars: tappin
 - **THEN** the previous tooltip clears (single active tooltip at a time), matching the rolling chart
 
 ### Requirement: The window box border sits beside the bars, not on them
-The window box SHALL be inset relative to the enclosed bars so its black border falls in the flex gap adjacent to the first and last window bars, never drawn on top of a bar.
+The window box SHALL be inset relative to the enclosed bars so its black border falls in the gaps around the window bars — beside the first and last bars on the sides and below them at the bottom — never drawn on top of a bar.
 
-#### Scenario: Box border in the gap
+#### Scenario: Box border in the side gaps
 - **WHEN** a 7-day window box is shown around bars
-- **THEN** its left and right borders sit one half-gap outside the first and last enclosed bars, leaving the bars' own edges uncovered
+- **THEN** its left and right borders sit one half-gap outside the first and last enclosed bars, leaving the bars' side edges uncovered
+
+#### Scenario: Box border clears the bar bottoms
+- **WHEN** a 7-day window box is shown around bars
+- **THEN** its bottom border sits in padding below the lowest enclosed bar (not on top of it), so no bar touches the border
