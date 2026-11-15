@@ -68,3 +68,21 @@ The system SHALL let D K tap a rolling-7-day bar to highlight in the daily chart
 #### Scenario: Oldest bars clamp to the available history
 - **WHEN** D K selects a rolling bar whose seven-day window would start before the oldest recorded day
 - **THEN** the highlight covers only the available days from the chart's start through the selected date (never extending before the earliest day)
+
+### Requirement: Daily bars are tappable with a shared value tooltip
+The daily-endurance bars SHALL be tappable exactly like the rolling bars: tapping a daily bar draws a black outline around it and shows a number-only tooltip with that day's total minutes, implemented through the same shared tooltip logic as the rolling chart so the two behave identically.
+
+#### Scenario: Tapping a daily bar shows its day's total
+- **WHEN** D K taps a daily-endurance bar
+- **THEN** that bar gains a black outline and a tooltip showing its total minutes for that day
+
+#### Scenario: Daily bar tooltip clears like the rolling one
+- **WHEN** D K taps another bar or taps outside the bars after revealing a daily tooltip
+- **THEN** the previous tooltip clears (single active tooltip at a time), matching the rolling chart
+
+### Requirement: The window box border sits beside the bars, not on them
+The window box SHALL be inset relative to the enclosed bars so its black border falls in the flex gap adjacent to the first and last window bars, never drawn on top of a bar.
+
+#### Scenario: Box border in the gap
+- **WHEN** a 7-day window box is shown around bars
+- **THEN** its left and right borders sit one half-gap outside the first and last enclosed bars, leaving the bars' own edges uncovered

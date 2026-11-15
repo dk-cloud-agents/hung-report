@@ -24,6 +24,8 @@ substituted (temp copy) for edge states.
 | 12 | Left-edge clamp | Select idx 0 (oldest bar) | Box covers available days from chart start only (0..6 → all 7, or clamps before start); never extends before day 01 | pending |
 | 13 | Rolling/EVALS unchanged | Compare chart/tooltip/EVAL markup | Rolling chart values, tap-to-reveal tooltip, and eval table are unchanged by this feature | pending |
 | 14 | No console errors | Every step above | `window.__con` is empty on load and after each interaction | pending |
+| 15 | Daily bars tappable (shared function) | Tap a daily bar (idx12, `daily=62`) | Bar shows black `.tapped` outline + tooltip "62" — same behaviour/logic as rolling bars | pending |
+| 16 | Window box inset (border beside bars) | Select a rolling bar (idx13) | Box left/right edges sit one flex-half-gap outside the first/last enclosed bars, not over them | pending |
 
 ## Not runnable / N/A (stated reason)
 

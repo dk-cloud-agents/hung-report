@@ -20,6 +20,8 @@ Real sheet data (14 dates: 11-02..11-15; `daily` from Zone 2 Volume col B).
 | 12 | Left-edge clamp (oldest bar) | **PASS** | Tap idx0 → highlights only `11-02` (1 available day); never before chart start |
 | 13 | No regression (rolling/tooltip/evals) | **PASS** | Rolling bars, tap-to-reveal tooltip, eval table (7 rows) unchanged |
 | 14 | No console errors across all interactions | **PASS** | `window.__con` empty on load and after every case |
+| 15 | Daily bars tappable (shared function) | **PASS** | Tap daily idx12 → 1 black `.tapped` outline, tooltip "62" (= `daily[12]`); tap-again/outside clears; `enableBarTooltip` single code path for both charts |
+| 16 | Window box inset (border beside bars) | **PASS** | Select rolling idx13: `boxLeft = first.offsetLeft − 2.5px`, `boxRightEdge = last.offsetLeft + width + 2.5px` (half-gap = 2.5), border in the gap, not over bars |
 
 ## N/A (not runnable here, stated reason)
 - iOS Safari touch/scroll **feel** and on-device layout — cannot verify headlessly. Flagged for D K's own

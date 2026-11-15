@@ -7,7 +7,7 @@
 
 ## Feature — daily-session-chart
 
-- [ ] Add the `daily = [...]` data array to the template (`hung_endurance_report.html`), aligned to the existing `dates[]` (same 14 slots).
+- [x] Add the `daily = [...]` data array to the template (`hung_endurance_report.html`), aligned to the existing `dates[]` (same 14 slots).
 - [ ] Render a second bar chart card beneath the rolling-7-day chart, **title ABOVE the bars** ("Daily endurance minutes"), reusing the existing bar CSS/classes: one bar per date, height ∝ `daily[i] / maxDaily`; 0-min dates show an empty slot (bar retained for axis alignment).
 - [ ] Reuse the report's European `DD.MM` date labels + minutes axis.
 - [ ] Sum-of-the-day semantics: bar height = total minutes for that date across all endurance types (sourced from the sheet's per-day total — no per-type splitting).
@@ -21,11 +21,13 @@
 - [ ] Tap a different rolling bar → re-anchor box+dim+labels to the new window (smooth transition).
 - [ ] Tap the already-selected bar again (or tap outside the rolling bars) → `sel = -1`, clear all highlights.
 - [ ] Left-edge clamp: `lo = max(0, sel-6)` so oldest bars never extend the box before the chart's start.
-- [ ] Daily bars are NOT tappable; per-day outline mode is NOT implemented (rejected Variant 2).
+- [x] Daily bars use the shared `enableBarTooltip('barsD', daily)` — tap → black outline + that day's total, same function as rolling.
+- [x] Weekbox inset by half the flex gap on left/right so its border sits beside the bars, never over them.
+- [ ] Per-day outline mode for the window is NOT implemented (rejected Variant 2).
 
 ## publish_report.py
 
-- [ ] Extend the existing `Zone 2 Volume` read to capture column B (per-day `Total`) alongside column D for the same 14 picked dates.
+- [x] Extend the existing `Zone 2 Volume` read to capture column B (per-day `Total`) alongside column D for the same 14 picked dates.
 - [ ] Inject `const daily = [...]` via the same `re.sub` pattern used for `rolling`.
 - [ ] Include `daily` in the `sig` JSON so an unchanged daily series does not re-publish.
 - [ ] Re-run on-log: after a session is synced + published, the new chart reflects the new day's minutes.

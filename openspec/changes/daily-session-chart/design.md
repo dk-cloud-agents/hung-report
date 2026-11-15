@@ -70,7 +70,9 @@ The rolling-7-day bars gain a `click` handler that ties the top chart to the dai
 - **Tap anywhere outside a rolling bar** → `sel = -1`, cleared (same "tap outside clears" rule the existing tooltip uses).
 - **Left-edge clamp:** `lo = max(0, sel-6)` guarantees the oldest bars (fewer than 7 in-range days) clamp to the earliest available date; the box never extends before the chart's start.
 
-The daily chart's own bars are NOT individually tappable in this change — only the rolling bars drive the selection (per approved Variant 1, no per-day outline mode).
+The daily chart's own bars are tappable via the SAME shared tooltip function as the rolling bars (`enableBarTooltip(boxId, values)`) — one function, called once per chart with its own value array, so a daily tap shows a black outline + that day's total, identically to the rolling chart. The daily bars are NOT part of the 7-day window *selection* (no per-day outline mode on the window; that rejected Variant 2 stays out).
+
+The window box must not cover the bars: its left/right edges are placed **one half-gap outside** the first/last enclosed bars (`left = first.offsetLeft − halfGap`; `right = cw − lastEl.offsetLeft − lastEl.offsetWidth − halfGap`, where `halfGap = flex gap ÷ 2`), so the black border sits in the gap BESIDE the bars, never over them.
 
 ## publish_report.py changes
 
@@ -83,5 +85,5 @@ The EVALS read and re-sub are untouched.
 - No new sheet columns, tabs, or cron jobs (per-day totals already exist in `Zone 2 Volume` col B).
 - The rolling 7-day chart's tooltip and value-drawing are unchanged; selection ADDS a highlight but does not alter bar heights or the existing tooltip.
 - No pre-selection of the current week on load (approved: nothing selected until a bar is tapped).
-- No standalone tap on daily bars, and no per-day outline mode (Variant 2 was considered and rejected — Variant 1 box is the approved look).
+- No per-day outline mode for the 7-day window (Variant 2 was considered and rejected — Variant 1 box is the approved look). Daily bars ARE tappable, but only for the shared value-tooltip, not for the window selection.
 - No auto-annotation of which session type made a day's bar (sum of all types, per the spec).
