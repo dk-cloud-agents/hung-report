@@ -153,25 +153,30 @@ document.getElementById('labelsD').innerHTML = dates.map(d => `<span>${d}</span>
   document.getElementById('labelsD').innerHTML = '';
 })();
 
-// === Feature 1: bar tap → tooltip with that date's trailing-7-day total ===
-// Each rolling bar gets an inline tooltip showing ONLY the number (e.g. "200").
-// Tapping a bar toggles its tooltip; tapping elsewhere clears.
-const barsEl = document.getElementById('bars');
-barsEl.querySelectorAll('.bar').forEach((el, i) => {
-  const tip = document.createElement('div'); tip.className = 'tooltip';
-  tip.textContent = String(rolling[i]);          // just the number
-  el.appendChild(tip);
-  el.style.cursor = 'pointer';
-  el.addEventListener('click', e => {
-    e.stopPropagation();
-    const was = el.classList.contains('tapped');
-    barsEl.querySelectorAll('.bar.tapped').forEach(b => b.classList.remove('tapped'));
-    if (!was) el.classList.add('tapped');
+// === Shared tooltip behaviour (used by BOTH charts) ===
+// Each bar of a chart gets an inline tooltip showing ONLY the number (its value).
+// Tapping a bar toggles its black `.tapped` outline + tooltip; tapping elsewhere
+// clears. One function, called once per chart so behaviour stays identical.
+function enableBarTooltip(boxId, values){
+  const boxEl = document.getElementById(boxId);
+  boxEl.querySelectorAll('.bar').forEach((el, i) => {
+    const tip = document.createElement('div'); tip.className = 'tooltip';
+    tip.textContent = String(values[i]);          // just the number
+    el.appendChild(tip);
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      const was = el.classList.contains('tapped');
+      document.querySelectorAll('.bar.tapped').forEach(b => b.classList.remove('tapped'));
+      if (!was) el.classList.add('tapped');
+    });
   });
-});
+}
+enableBarTooltip('bars',  rolling);   // rolling bars → 7-day total
+enableBarTooltip('barsD', daily);     // daily bars → that day's total
 document.addEventListener('click', e => {
   if (!e.target.classList || !e.target.classList.contains('bar'))
-    barsEl.querySelectorAll('.bar.tapped').forEach(b => b.classList.remove('tapped'));
+    document.querySelectorAll('.bar.tapped').forEach(b => b.classList.remove('tapped'));
 });
 
 // === Feature 3: linked 7-day window selection (approved Variant 1) ===
@@ -184,30 +189,34 @@ const dayLabs  = document.querySelectorAll('#labelsD span');
 const weekbox  = document.createElement('div'); weekbox.className = 'weekbox';
 weekbox.style.display = 'none';          // hidden until a bar is selected
 barsD.appendChild(weekbox);
+const rollEl = document.getElementById('bars');
 let sel = -1;   // index into dates[]; -1 = nothing selected
 
 function applySel(){
   if (dayBars.length === 0) return;   // daily chart empty → nothing to highlight
   if (sel < 0){
     weekbox.style.display = 'none';
-    barsEl.querySelectorAll('.bar.sel').forEach(b => b.classList.remove('sel'));
+    rollEl.querySelectorAll('.bar.sel').forEach(b => b.classList.remove('sel'));
     dayBars.forEach(b => b.classList.remove('hdim'));
     dayLabs.forEach(s => s.classList.remove('hl'));
     return;
   }
   weekbox.style.display = '';
   const lo = Math.max(0, sel - 6);
-  barsEl.querySelectorAll('.bar.sel').forEach(b => b.classList.remove('sel'));
-  barsEl.querySelectorAll('.bar')[sel].classList.add('sel');
+  rollEl.querySelectorAll('.bar.sel').forEach(b => b.classList.remove('sel'));
+  rollEl.querySelectorAll('.bar')[sel].classList.add('sel');
   dayBars.forEach((b, j) => b.classList.toggle('hdim', j < lo || j > sel));
   dayLabs.forEach((s, j) => s.classList.toggle('hl', j >= lo && j <= sel));
   // Box geometry in px from the pinned day bars (both rulers share one box).
+  // The box is inset by HALF the flex gap so its black border sits in the gap
+  // BESIDE the first/last bars, never on top of them (D K flagged the overlap).
+  const halfGap = parseFloat(getComputedStyle(barsD).gap) / 2 || 2.5;
   const first = dayBars[lo], lastEl = dayBars[sel];
-  weekbox.style.left  = first.offsetLeft + 'px';
-  weekbox.style.right = (barsD.clientWidth - lastEl.offsetLeft - lastEl.offsetWidth) + 'px';
+  weekbox.style.left   = (first.offsetLeft - halfGap) + 'px';
+  weekbox.style.right  = (barsD.clientWidth - lastEl.offsetLeft - lastEl.offsetWidth - halfGap) + 'px';
 }
 
-barsEl.querySelectorAll('.bar').forEach((el, i) => {
+rollEl.querySelectorAll('.bar').forEach((el, i) => {
   el.addEventListener('click', e => {
     e.stopPropagation();
     sel = (sel === i) ? -1 : i;       // tap the same bar again → deselect
