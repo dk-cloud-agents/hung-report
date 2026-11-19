@@ -105,11 +105,11 @@
 <script>
 const GOAL = 180;
 // Data: date + trailing-7-day total minutes. Update these to keep the report fresh.
-const dates   = ["11-06", "11-07", "11-08", "11-09", "11-10", "11-11", "11-12", "11-13", "11-14", "11-15", "11-16", "11-17", "11-18", "11-19"];
-const rolling = [200, 254, 234, 209, 216, 181, 187, 226, 234, 234, 206, 212, 264, 256];
+const dates   = ["11-07", "11-08", "11-09", "11-10", "11-11", "11-12", "11-13", "11-14", "11-15", "11-16", "11-17", "11-18", "11-19", "11-20"];
+const rolling = [254, 234, 209, 216, 181, 187, 226, 234, 234, 206, 212, 264, 256, 217];
 // Per-day endurance total minutes for the SAME dates as above (Zone 2 Volume col B).
 // populate at publish time — keep aligned one-to-one with dates[]/rolling[].
-const daily = [0.0, 54.0, 30.0, 28.0, 31.0, 0.0, 44.5, 39.2, 62.0, 30.0, 0.0, 37.3, 51.8, 36.6];
+const daily = [54.0, 30.0, 28.0, 31.0, 0.0, 44.5, 39.2, 62.0, 30.0, 0.0, 37.3, 51.8, 36.6, 0.0];
 
 const last = rolling[rolling.length-1];
 const met  = last >= GOAL;
