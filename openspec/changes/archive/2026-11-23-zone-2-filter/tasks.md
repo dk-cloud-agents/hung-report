@@ -23,7 +23,7 @@
 ## 5. Ship
 
 - [x] 5.1 Sync template → `web/index.html`, commit scoped (`git add -- index.html`), push; verify the LIVE page's served arrays include `z2rolling`/`z2daily` (grep the published page).
-- [ ] 5.2 Present the live link + test report to D K (paired, per SDD rule); on her acceptance run `openspec archive zone-2-filter` and mark SCRUM-8 Done.
+- [x] 5.2 Present the live link + test report to D K (paired, per SDD rule); on her acceptance run `openspec archive zone-2-filter` and mark SCRUM-8 Done.
 
 ## Workflow follow-up
 
