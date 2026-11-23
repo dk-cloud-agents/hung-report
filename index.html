@@ -51,6 +51,14 @@
   .charttitle{margin:14px 0 8px; font-size:10px; letter-spacing:1.3px; text-transform:uppercase;
         color:#8a8f8a; font-weight:800; text-align:center;}
   .charttitle:first-child{margin-top:0;}
+  /* NEW (zone-2-filter): segmented filter pill above the charts */
+  .z2filter{margin:6px 0 14px; display:flex; justify-content:center;}
+  .z2filter button{font-size:12px; letter-spacing:.6px; font-weight:800; padding:7px 16px;
+        background:#fff; color:#8a8f8a; cursor:pointer; font-family:inherit;
+        border:2px solid #d8dcd8;}
+  .z2filter button:first-child{border-radius:999px 0 0 999px; border-right-width:1px;}
+  .z2filter button:last-child{border-radius:0 999px 999px 0; border-left-width:1px;}
+  .z2filter button.on{background:#1f2421; color:#fff; border-color:#1f2421;}
   .divider{height:1px; background:#e6e8e6; margin:18px 0 12px;}
   .weekbox{position:absolute; top:6px; bottom:0; border:2px solid #1f2421; border-radius:10px;
         background:rgba(31,36,33,.07); pointer-events:none; z-index:0; transition:left .18s ease,right .18s ease;}
@@ -83,6 +91,10 @@
     <div class="metric"><span class="n" id="num">230</span> <span class="goal" id="goal">min / 180 goal</span></div>
   </div>
   <div class="bottom" id="bottom">
+    <div class="z2filter" role="group" aria-label="Volume filter">
+      <button id="bTotal" class="on" onclick="setFilter('total')">Total</button>
+      <button id="bZ2" class="" onclick="setFilter('z2')">Strict Z2</button>
+    </div>
     <div class="charttitle">Rolling 7-day total</div>
     <div class="bars" id="bars"></div>
     <div class="xlabels" id="labels"></div>
@@ -110,14 +122,22 @@ const rolling = [216, 181, 187, 226, 234, 234, 206, 212, 264, 256, 239, 189, 191
 // Per-day endurance total minutes for the SAME dates as above (Zone 2 Volume col B).
 // populate at publish time — keep aligned one-to-one with dates[]/rolling[].
 const daily = [31.0, 0.0, 44.5, 39.2, 62.0, 30.0, 0.0, 37.3, 51.8, 36.6, 21.6, 12.2, 32.5, 30.2];
+// Strict Zone 2 series (Zone 2 Volume col C per-day, col E 7-day rolling) —
+// same dates order as above. Populated at publish time.
+const z2daily = [31.0, 0.0, 14.5, 39.2, 62.0, 30.0, 0.0, 37.3, 51.8, 19.6, 21.6, 12.2, 32.5, 30.2];
+const z2rolling = [162.0, 127.0, 103.5, 142.7, 204.7, 204.7, 176.7, 183.0, 234.8, 239.9, 222.3, 172.4, 174.9, 205.2];
 
-const last = rolling[rolling.length-1];
-const met  = last >= GOAL;
+// NEW (zone-2-filter): 'total' = all endurance volume (default), 'z2' = strict
+// Zone 2 only. Default OFF every load; the choice is NOT persisted.
+let mode = 'total';
 
-// background: green = goal hit, red = goal missed
-document.body.style.background = met ? "#1aa263" : "#e0553f";
-document.getElementById('num').textContent = last;
-document.getElementById('goal').textContent = "min / " + GOAL + " goal";
+function setHeadline(shown){
+  const met = shown >= GOAL;
+  // background: green = goal hit, red = goal missed (follows the shown value)
+  document.body.style.background = met ? "#1aa263" : "#e0553f";
+  document.getElementById('num').textContent = shown;
+  document.getElementById('goal').textContent = "min / " + GOAL + " goal";
+}
 
 // Draw a bar chart into a container. Returns the container. `threshold` > 0
 // adds a dashed goal line positioned against the SAME content box as the bars
@@ -141,18 +161,6 @@ function drawChart(id, values, threshold, goalLine){
   }
   return box;
 }
-const bars   = drawChart('bars',  rolling, GOAL, true);
-const barsD  = drawChart('barsD', daily,   0,    false);
-document.getElementById('labels').innerHTML = dates.map(d => `<span>${d}</span>`).join('');
-document.getElementById('labelsD').innerHTML = dates.map(d => `<span>${d}</span>`).join('');
-// Empty state for the daily chart: no sessions at all → show a message.
-(function emptyState(){
-  if (daily.some(v => v > 0)) return;
-  const box = document.getElementById('barsD');
-  box.setAttribute('data-empty','1');
-  box.innerHTML = '<div style="width:100%;text-align:center;color:#a5aba5;font-size:13px;padding-top:44px;">No endurance sessions yet</div>';
-  document.getElementById('labelsD').innerHTML = '';
-})();
 
 // === Shared tooltip behaviour (used by BOTH charts) ===
 // Each bar of a chart gets an inline tooltip showing ONLY the number (its value).
@@ -173,63 +181,104 @@ function enableBarTooltip(boxId, values){
     });
   });
 }
-enableBarTooltip('bars',  rolling);   // rolling bars → 7-day total
-enableBarTooltip('barsD', daily);     // daily bars → that day's total
 document.addEventListener('click', e => {
   if (!e.target.classList || !e.target.classList.contains('bar'))
     document.querySelectorAll('.bar.tapped').forEach(b => b.classList.remove('tapped'));
 });
 
+// Re-render the headline + both charts for the active mode. Rebuilds bars,
+// tooltips, and the linked 7-day selection from scratch (innerHTML wipes
+// prior DOM bindings, so everything is re-bound each time).
+function renderAll(){
+  const useZ2 = mode === 'z2';
+  const rollArr = useZ2 ? z2rolling : rolling;
+  const dayArr  = useZ2 ? z2daily  : daily;
+  setHeadline(rollArr[rollArr.length - 1]);
+  drawChart('bars',  rollArr, GOAL, true);
+  drawChart('barsD', dayArr,  0,    false);
+  document.getElementById('labels').innerHTML = dates.map(d => `<span>${d}</span>`).join('');
+  document.getElementById('labelsD').innerHTML = dates.map(d => `<span>${d}</span>`).join('');
+  // Empty state for the daily chart: no sessions at all → show a message.
+  const box = document.getElementById('barsD');
+  if (dayArr.some(v => v > 0)) box.removeAttribute('data-empty');
+  else {
+    box.setAttribute('data-empty','1');
+    box.innerHTML = '<div style="width:100%;text-align:center;color:#a5aba5;font-size:13px;padding-top:44px;">No endurance sessions yet</div>';
+    document.getElementById('labelsD').innerHTML = '';
+  }
+  enableBarTooltip('bars',  rollArr);   // rolling bars → 7-day total
+  enableBarTooltip('barsD', dayArr);    // daily bars → that day's total
+  setupWindowSelection();
+}
+
 // === Feature 3: linked 7-day window selection (approved Variant 1) ===
 // Tapping a rolling bar highlights in the daily chart below the exact 7 days
 // (selected date + 6 back) that compose that rolling total. ONE black box +
 // dim outside + darken window labels. No pre-selection; tap-again/tap-outside
-// clears; left edge clamps to the earliest day.
-const dayBars  = barsD.querySelectorAll('.bar');
-const dayLabs  = document.querySelectorAll('#labelsD span');
-const weekbox  = document.createElement('div'); weekbox.className = 'weekbox';
-weekbox.style.display = 'none';          // hidden until a bar is selected
-barsD.appendChild(weekbox);
-const rollEl = document.getElementById('bars');
-let sel = -1;   // index into dates[]; -1 = nothing selected
+// clears; left edge clamps to the earliest day. Rebuilt on every filter render
+// because renderAll() wipes #barsD's DOM (weekbox included).
+let sel = -1;          // index into dates[]; -1 = nothing selected
+let weekbox = null;
 
 function applySel(){
+  const dayBars = document.querySelectorAll('#barsD .bar');
+  const dayLabs = document.querySelectorAll('#labelsD span');
+  const rollEl = document.getElementById('bars');
   if (dayBars.length === 0) return;   // daily chart empty → nothing to highlight
   if (sel < 0){
-    weekbox.style.display = 'none';
+    if (weekbox) weekbox.style.display = 'none';
     rollEl.querySelectorAll('.bar.sel').forEach(b => b.classList.remove('sel'));
     dayBars.forEach(b => b.classList.remove('hdim'));
     dayLabs.forEach(s => s.classList.remove('hl'));
     return;
   }
+  const rollBars = rollEl.querySelectorAll('.bar');
+  if (sel >= rollBars.length || sel >= dayBars.length) return;
   weekbox.style.display = '';
   const lo = Math.max(0, sel - 6);
-  rollEl.querySelectorAll('.bar.sel').forEach(b => b.classList.remove('sel'));
-  rollEl.querySelectorAll('.bar')[sel].classList.add('sel');
+  rollBars.forEach((b, j) => b.classList.toggle('sel', j === sel));
   dayBars.forEach((b, j) => b.classList.toggle('hdim', j < lo || j > sel));
   dayLabs.forEach((s, j) => s.classList.toggle('hl', j >= lo && j <= sel));
   // Box geometry in px from the pinned day bars (both rulers share one box).
   // The box is inset by the FULL flex gap on left/right so the frame sits an
   // equal 5px from the bars on ALL three sides (matching #barsD padding-bottom),
   // never over any bar (D K: make the gap consistent on left, right, bottom).
-  const inset = parseFloat(getComputedStyle(barsD).gap) || 5;
+  const inset = parseFloat(getComputedStyle(document.getElementById('barsD')).gap) || 5;
   const first = dayBars[lo], lastEl = dayBars[sel];
   weekbox.style.left   = (first.offsetLeft - inset) + 'px';
-  weekbox.style.right  = (barsD.clientWidth - lastEl.offsetLeft - lastEl.offsetWidth - inset) + 'px';
+  weekbox.style.right  = (document.getElementById('barsD').clientWidth - lastEl.offsetLeft - lastEl.offsetWidth - inset) + 'px';
 }
 
-rollEl.querySelectorAll('.bar').forEach((el, i) => {
-  el.addEventListener('click', e => {
-    e.stopPropagation();
-    sel = (sel === i) ? -1 : i;       // tap the same bar again → deselect
-    applySel();
+function setupWindowSelection(){
+  const barsD_ = document.getElementById('barsD');
+  if (weekbox && weekbox.parentNode) weekbox.parentNode.removeChild(weekbox);
+  weekbox = document.createElement('div'); weekbox.className = 'weekbox';
+  weekbox.style.display = 'none';          // hidden until a bar is selected
+  barsD_.appendChild(weekbox);
+  sel = -1;                                // filter switch clears any selection
+  document.getElementById('bars').querySelectorAll('.bar').forEach((el, i) => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      sel = (sel === i) ? -1 : i;       // tap the same bar again → deselect
+      applySel();
+    });
   });
-});
+}
+
 document.addEventListener('click', e => {
   // tapping outside any rolling bar clears the window selection
   if (sel >= 0 && (!e.target.classList || !e.target.classList.contains('bar')))
     { sel = -1; applySel(); }
 });
+
+// === zone-2-filter: apply/remove the strict-Z2 view ===
+function setFilter(f){
+  mode = (f === 'z2') ? 'z2' : 'total';
+  document.getElementById('bTotal').classList.toggle('on', mode === 'total');
+  document.getElementById('bZ2').classList.toggle('on', mode === 'z2');
+  renderAll();
+}
+setFilter('total');   // default OFF on every load (choice not persisted)
 
 // === Feature 2: eval tracker (15% / 30 min treadmill evals) ===
 // date | avg HR (bpm) | speed (km/h) — newest first. Log the 30-min-window avg
