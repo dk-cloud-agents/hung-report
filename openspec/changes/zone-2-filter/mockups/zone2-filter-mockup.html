@@ -1,0 +1,112 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup — Zone 2 filter · Hung's report</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{-webkit-text-size-adjust:100%;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       color:#1f2421; background:#1aa263; padding-top:280px;}
+  .top{position:fixed; top:0; left:0; right:0; color:#fff; display:flex; flex-direction:column;
+       align-items:center; justify-content:center; text-align:center; padding:30px 22px;
+       background:inherit;}
+  .avatar{width:90px; height:90px; border-radius:50%; border:3px solid rgba(255,255,255,.55);
+       box-shadow:0 6px 20px rgba(0,0,0,.18);}
+  .tagline{margin-top:12px; font-size:14px; font-weight:600; opacity:.8;}
+  .metric{margin-top:16px; line-height:1;}
+  .metric .n{font-size:72px; font-weight:800; letter-spacing:-3px;}
+  .metric .goal{font-size:28px; font-weight:700; opacity:.95;}
+  .bottom{background:#fff; padding:16px 20px 22px; border-top-left-radius:24px;
+        border-top-right-radius:24px; box-shadow:0 -6px 24px rgba(0,0,0,.08);}
+  /* NEW: segmented filter pill, above the chart titles */
+  .z2filter{margin:6px 0 14px; display:flex; justify-content:center;}
+  .z2filter button{font-size:12.5px; letter-spacing:.6px; font-weight:800; padding:7px 18px;
+        border-radius:999px; border:2px solid #d8dcd8; background:#fff; color:#8a8f8a;
+        cursor:pointer; font-family:inherit;}
+  .z2filter button.on{background:#1f2421; color:#fff; border-color:#1f2421;}
+  .charttitle{margin:0 0 8px; font-size:10px; letter-spacing:1.3px; text-transform:uppercase;
+        color:#8a8f8a; font-weight:800; text-align:center;}
+  .bars{display:flex; align-items:flex-end; gap:5px; height:110px; position:relative;
+        padding-top:14px;}
+  .bar{flex:1; min-width:0; border-radius:6px 6px 2px 2px;}
+  .bar.ok{background:#22c55e;} .bar.z2{background:#0e7a3e;}
+  .bar.no{background:#e0553f;}
+  .xlabels{display:flex; gap:5px; margin-top:8px;}
+  .xlabels span{flex:1; text-align:center; font-size:8.5px; color:#a5aba5;}
+  .divider{height:1px; background:#e6e8e6; margin:18px 0 12px;}
+  .evals{margin-top:16px; border-top:1px solid #e6e8e6; padding-top:12px;}
+  .evals-title{font-size:10px; letter-spacing:1.3px; text-transform:uppercase;
+        color:#8a8f8a; font-weight:800; margin-bottom:8px; text-align:center;}
+  .eval-table{width:100%; border-collapse:collapse; font-size:13px; color:#333;}
+  .eval-table td{border-top:1px solid #eef1ee; padding:7px 6px;}
+  .hint{font-size:11px; color:#8a8f8a; text-align:center; margin:10px 0 0; font-weight:600;}
+</style></head>
+<body>
+  <div class="top">
+    <div class="avatar"></div>
+    <div class="tagline">Your week · Hung's report</div>
+    <div class="metric"><span class="n" id="num">222</span> <span class="goal">min / 180 goal</span></div>
+  </div>
+  <div class="bottom">
+    <!-- NEW segmented filter control (applies to headline + both charts) -->
+    <div class="z2filter">
+      <button id="bTotal" class="on" onclick="setFilter('total')">Total</button>
+      <button id="bZ2" class="" onclick="setFilter('z2')">Strict Z2</button>
+    </div>
+
+    <div class="charttitle">Rolling 7-day total</div>
+    <div class="bars" id="bars"></div>
+    <div class="xlabels" id="labels"></div>
+
+    <div class="divider"></div>
+
+    <div class="charttitle">Daily endurance minutes</div>
+    <div class="bars" id="barsD"></div>
+    <div class="xlabels" id="labelsD"></div>
+
+    <div class="evals">
+      <div class="evals-title">Treadmill evals · 15% incline / 30 min</div>
+      <table class="eval-table">
+        <tr><td>23.11 · 112 bpm @ 1.5 km/h — Walk</td></tr>
+        <tr><td>22.11 · 111 bpm @ 3.3 km/h — Real walk (outdoors)</td></tr>
+        <tr><td>21.11 · 118 bpm @ 4.7 km/h — Real walk (outdoors)</td></tr>
+      </table>
+    </div>
+
+    <div class="hint">Filter applies to the headline + both charts. Eval tracker is unchanged.</div>
+  </div>
+
+<script>
+const GOAL = 180;
+const dates = ["11-17","11-18","11-19","11-20","11-21","11-22","11-23"];
+const TOTAL_ROLLING = [212, 264, 256, 239, 189, 191, 222];   // current view
+const Z2_ROLLING    = [182, 234, 239, 222, 172, 174, 205];   // strict Z2 (sheet col E)
+const TOTAL_DAILY   = [37.3, 51.8, 36.6, 21.6, 12.2, 32.5, 30.2]; // col B
+const Z2_DAILY      = [37.3, 51.8, 19.6, 21.6, 12.2, 32.5, 30.2]; // col C (strict Z2)
+const mode = { now: "total" };
+function paint(rolling, daily, z2flag){
+  document.getElementById("num").textContent = rolling[rolling.length-1];
+  render("#bars", rolling, z2flag);  render("#barsD", daily, z2flag);
+  document.querySelectorAll("#bars,#barsD").forEach(b=>b.innerHTML="");
+}
+function render(sel, arr, z2flag){
+  const max = Math.max(...arr, 10);
+  const box = document.getElementById(sel.slice(1));
+  box.innerHTML = arr.map(v=>{
+    const h = Math.max(2, Math.round(v/max*100));
+    const cls = v===0 ? "no" : (z2flag ? "z2" : "ok");
+    return `<div class="bar ${cls}" style="height:${h}%"></div>`;
+  }).join("");
+  const lbl = document.getElementById(sel.slice(1)+"D") || document.getElementById(sel==="#bars"?"labels":"labelsD");
+  const root = document.getElementById(sel==="#bars"?"labels":"labelsD");
+  root.innerHTML = dates.map(d=>`<span>${d}</span>`).join("");
+}
+function setFilter(f){
+  mode.now = f;
+  document.getElementById("bTotal").className = f==="total" ? "on" : "";
+  document.getElementById("bZ2").className = f==="z2" ? "on" : "";
+  if(f==="total") paint(TOTAL_ROLLING, TOTAL_DAILY, false);
+  else paint(Z2_ROLLING, Z2_DAILY, true);
+}
+setFilter("total");
+</script>
+</body></html>
