@@ -10,8 +10,8 @@
 | T1 | Control renders | Load report | "Total \| Strict Z2" segmented control visible above the charts | pending |
 | T2 | Default OFF | Fresh load | Headline + both charts show total endurance; control reads "Total" | pending |
 | T3 | Apply filter | Click "Strict Z2" | Headline flips to the strict-Z2 7-day value; rolling + daily charts re-render from Z2 data | pending |
-| T4 | Filtered values match the sheet | Compare filtered headline to sheet col E (7-day Zone 2 Total) for the same date | Values equal | pending |
-| T5 | Daily chart filtered | Filter ON | Each daily bar equals sheet col C (per-day Zone 2); rest days show an empty slot | pending |
+| T4 | Filtered values match the sheet | Compare filtered headline to sheet col E (7-day Zone 2 Total) for the same date | Equal when both rounded to the nearest whole minute (e.g. 205.18 → 205) | pending |
+| T5 | Daily chart filtered | Filter ON | Each daily bar equals sheet col C rounded to whole minutes; rest days show an empty slot | pending |
 | T6 | Remove filter | Click "Total" | Headline + charts return to total endurance values | pending |
 | T7 | Eval tracker unaffected | Filter ON, inspect eval table | Eval rows unchanged | pending |
 | T8 | No persistence | Apply filter, reload page | Control back to "Total"; total endurance view | pending |

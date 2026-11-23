@@ -37,7 +37,7 @@ The filtered values SHALL come from the strict Zone 2 figures already computed i
 
 #### Scenario: Filtered values match the sheet's Zone 2 columns
 - **WHEN** the filter is applied on a given date
-- **THEN** the shown strict Zone 2 minutes equal the source sheet's per-day Zone 2 and 7-day Zone 2 Total values for that date
+- **THEN** the shown strict Zone 2 minutes equal the source sheet's per-day Zone 2 and 7-day Zone 2 Total values for that date, rounded to the nearest whole minute (consistent with how total volume is displayed)
 
 #### Scenario: Rest day shows no strict Zone 2 bar
 - **WHEN** a date in the series has zero strict Zone 2 minutes

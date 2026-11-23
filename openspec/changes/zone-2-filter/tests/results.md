@@ -8,9 +8,9 @@ Executed: **23.11.26 17:00 CET** against the deployed `web/index.html` (identica
 |---|-----------|--------|----------|
 | T1 | Control renders | **PASS** | `bTotal` + `bZ2` buttons present in DOM |
 | T2 | Default OFF | **PASS** | Fresh load: headline `222` (total), `bTotal.on`, `bZ2` inactive, 14 rolling bars |
-| T3 | Apply filter | **PASS** | Real click on Strict Z2: headline → `205.2`, `bZ2.on`, `bTotal` inactive, both charts re-render (14 bars each) |
-| T4 | Filtered value matches sheet col E | **PASS** | Headline `205.2` == sheet `7-day Zone 2 Total` for 23.11 (205.18) |
-| T5 | Daily chart filtered | **PASS** | Tooltip `daily[2]` = `14.5` (sheet col C for 11-12) vs total `44.5`; `daily[13]` = `30.2`; rest days keep empty slots |
+| T3 | Apply filter | **PASS** | Real click on Strict Z2: headline → `205`, `bZ2.on`, `bTotal` inactive, both charts re-render (14 bars each) |
+| T4 | Filtered value matches sheet col E | **PASS** | Headline `205` == sheet col E for 23.11 (205.18) rounded to nearest whole minute |
+| T5 | Daily chart filtered | **PASS** | Tooltip `daily[2]` = `15` (sheet col C 14.5 for 11-12, rounded) vs total `45`; `daily[13]` = `30`; rest days keep empty slots |
 | T6 | Remove filter | **PASS** | Real click on Total: headline back to `222`, `bTotal.on` |
 | T7 | Eval tracker unaffected | **PASS** | 8 eval rows before and after toggling filter |
 | T8 | No persistence | **PASS** | Page reload resets to Total (`222`), filter off |
