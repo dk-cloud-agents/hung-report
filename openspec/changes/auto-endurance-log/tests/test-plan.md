@@ -8,7 +8,7 @@
 | # | Test case | Input | Expected outcome | Status |
 |---|-----------|-------|------------------|--------|
 | T1 | New workout logged | Push a novel Zones-style workout to the webhook | An `Endurance`-tab row appears (date, type, duration, distance, avg HR) matching the payload | pending |
-| T2 | Strict-Z2 in volume section | Same push with `zone2.time` | `Zone 2 Volume` per-day + 7-day totals include the session's strict-Z2 (zone2 sec ÷ 60) | pending |
+| T2 | Strict-Z2 in volume section | Same push with avg HR in band | `Zone 2 Volume` per-day + 7-day totals include the session (avg-HR-in-band method, consistent with manual logs); watch zone2 minutes appear in Notes | pending |
 | T3 | Markdown appended | Same push | A row is appended to `walking_training.md` in the report schema; prior rows intact | pending |
 | T4 | Report republished | After a write | The live report's served data arrays reflect the new session (no manual publish) | pending |
 | T5 | Dedup | Push the same workout again (same uuid) | No second Endurance row, no second log entry, no extra publish | pending |
