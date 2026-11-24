@@ -118,14 +118,14 @@
 const GOAL = 180;
 // Data: date + trailing-7-day total minutes. Update these to keep the report fresh.
 const dates   = ["11-11", "11-12", "11-13", "11-14", "11-15", "11-16", "11-17", "11-18", "11-19", "11-20", "11-21", "11-22", "11-23", "11-24"];
-const rolling = [181, 188, 227, 235, 235, 207, 213, 265, 257, 239, 189, 192, 222, 185];
+const rolling = [181, 188, 227, 235, 235, 207, 213, 265, 257, 239, 189, 192, 262, 225];
 // Per-day endurance total minutes for the SAME dates as above (Zone 2 Volume col B).
 // populate at publish time — keep aligned one-to-one with dates[]/rolling[].
-const daily = [0, 45, 39, 62, 30, 0, 37, 52, 37, 22, 12, 32, 30, 0];
+const daily = [0, 45, 39, 62, 30, 0, 37, 52, 37, 22, 12, 32, 70, 0];
 // Strict Zone 2 series (Zone 2 Volume col C per-day, col E 7-day rolling) —
 // same dates order as above. Populated at publish time.
-const z2daily = [0, 15, 39, 62, 30, 0, 22, 52, 20, 0, 12, 32, 30, 0];
-const z2rolling = [127, 104, 143, 205, 205, 177, 167, 219, 224, 185, 135, 138, 168, 146];
+const z2daily = [0, 15, 39, 62, 30, 0, 22, 52, 20, 0, 12, 32, 70, 0];
+const z2rolling = [127, 104, 143, 205, 205, 177, 167, 219, 224, 185, 135, 138, 208, 186];
 
 // NEW (zone-2-filter): 'total' = all endurance volume (default), 'z2' = strict
 // Zone 2 only. Default OFF every load; the choice is NOT persisted.
