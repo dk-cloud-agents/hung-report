@@ -64,7 +64,7 @@ The system SHALL record sessions per D K's logging conventions: map an Indoor wa
 - **WHEN** the workout's start time is in UTC
 - **THEN** the record's date is the workout's date in Europe/Berlin
 
-#### Scenario: Strict-Z2 consistent with manual sessions
-- **WHEN** a session's average HR falls in the 107–129 band
-- **THEN** the session counts toward strict-Z2 exactly as a manually-logged session would (the sheet's standard avg-HR-in-band method), keeping auto and manual sessions comparable
-- **AND** the watch's per-minute Zone-2 time is recorded in the session Notes for reference
+#### Scenario: Strict-Z2 from the watch's per-minute Zone-2 time
+- **WHEN** a workout payload carries `zones.zone2.time` (seconds actually spent in the 107–129 band)
+- **THEN** that is the session's strict-Z2 minutes (sec ÷ 60), stored in col K and used by the Zone-2 Volume tab's formula — the true per-minute value, not an avg-HR estimate
+- **AND** sessions without a watch value (manual/historical) keep the sheet's AVG-HR-in-band fallback so no row is lost
